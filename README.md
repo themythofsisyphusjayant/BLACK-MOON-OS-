@@ -1,41 +1,14 @@
-![Black Moon header](https://capsule-render.vercel.app/api?type=waving&color=gradient&height=180&section=header&text=Black%20Moon%20OS%20%26%20JalOS&fontSize=38&animation=fadeIn)
+# Black Moon OS — JalOS and the distro
 
-![Typing](https://readme-typing-svg.demolab.com?font=Fira+Code&pause=1000&color=F472B6&width=650&lines=A+teaching+OS+in+Jal+Pari.;Inside+a+real+bootable+Arch+distro.;Scheduler.+Filesystem.+Shell.+Networking.)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-# JalOS — a complete teaching OS in Jal Pari
+Two layers, one repo: **JalOS**, a complete teaching operating system written in Qasida, and **Black Moon OS**, a bootable Arch-based Linux distribution that ships JalOS as an app.
 
-JalOS is every subsystem a modern OS has — bootloader, kernel,
-priority scheduler, virtual memory allocator, hierarchical
-filesystem with permissions, users, devices, networking, a package
-manager, system services, logging, and a ~30-command shell —
-implemented in [The Jal Pari Language](https://github.com/themythofsisyphusjayant/RED-MOON-)
-and running as a single program (`jalos.fg`).
+Status: this repo was last updated 29 Oct 2026. The JalOS copy here is the October 2026 version; the current copy, and the from-scratch kernel track it feeds, live in [MOON-OS](https://github.com/themythofsisyphusjayant/MOON-OS).
 
-## Black Moon OS — the distro
+## JalOS — a complete teaching OS in Qasida
 
-JalOS also ships inside a real, bootable Arch-based Linux
-distribution: XFCE desktop, Firefox/Chromium, GNOME Software,
-installer, and Jal Pari. See [`distro/README.md`](distro/README.md)
-— build it with `./distro/build.sh` on Arch Linux. (The distro is a
-real Linux system; JalOS itself runs *on top of* an OS and is not a
-kernel — the distinction is documented in the distro README.)
-
-## Run it
-
-First install Jal Pari (one time), which puts the `jalpari` command
-on your PATH — see the RED-MOON- repo's install instructions. Then:
-
-```
-./run.sh                  # the built-in demo tour
-jalpari run jalos.fg script.txt   # run a script file (see scripts/)
-jalpari run jalos.fg ps           # a single command
-```
-
-`tests/check.sh` runs the demo tour and diffs it against
-`tests/expected_output.txt` — the tour is offline and deterministic,
-so it must match exactly.
-
-## What's inside
+JalOS is every subsystem a modern OS has — bootloader, kernel, priority scheduler, virtual memory allocator, hierarchical filesystem with permissions, users, devices, networking, a package manager, system services, logging, and a ~30-command shell — implemented in [Qasida](https://pypi.org/project/qasida/) (formerly the Jal Pari Language; source in [RED-MOON-](https://github.com/themythofsisyphusjayant/RED-MOON-)) and running as a single program (`jalos.fg`).
 
 | Subsystem | What JalOS does |
 |---|---|
@@ -47,63 +20,52 @@ so it must match exactly.
 | Permissions + users | root/guest, file owners, owner-or-root checks, `su`, `useradd`, `/etc/passwd` |
 | Devices | Console, loopback network device, disk (the VFS) |
 | Networking | `ping` (loopback, simulated), `ifconfig`, `httpget` (real HTTP through the host stack) |
-| Package manager | `pkg list/search/info/install/remove` — install really fetches the package source over HTTPS from the Jal Pari registry |
+| Package manager | `pkg list/search/info/install/remove` — install really fetches the package source over HTTPS from the Qasida registry |
 | Services + logging | cron (heartbeat every 5 ticks), syslog (`/var/log/syslog`), `logger`, `services` |
 | Shell | ~30 commands, script files, single-command mode, `history`, `env`, `uptime`, `df`, `shutdown`, `ai`, `audit` |
 
-## Honest limits
+## Run it
 
-- **Not bootable — yet.** JalOS itself still runs on top of a
-  host OS: it is a simulation, not a kernel. But the language
-  underneath it has changed since this was written: Jal Pari now
-  has a freestanding mode (`--freestanding`: no libc, own
-  `_start`), raw memory (`peek32`/`poke32`), bitwise operators,
-  CSR builtins, an `ecall` builtin, and a `trap_handler` hook —
-  the pieces a bootable kernel needs. The from-scratch kernel
-  track (Phases A–D done, first kernel next) lives in the
-  language repo's `docs/FREESTANDING.md`; JalOS's ideas feed
-  that kernel, but JalOS the program does not become it. What
-  Jal Pari still lacks for kernel work: pointers and inline
-  assembly.
-- **No GUI.** No graphics builtins exist, so the desktop is the
-  text shell.
-- **No passwords worth trusting.** Passwords are compared as plain
-  strings (no hashing builtin exists) — the user model demonstrates
-  permissions, it does not secure anything real.
-- **HTTPS works through proxies now.** `pkg install` and `httpget`
-  over HTTPS honour `https_proxy` / `HTTPS_PROXY` (plain HTTP
-  proxy, `CONNECT` handshake before TLS; `no_proxy` bypasses it),
-  shipped in language v1.2.0. Plain HTTP works everywhere
-  regardless.
-- **No persistence.** The VFS lives in memory; shutdown loses it.
+Install Qasida once (`pip install qasida`; current release 2.3.0). The scripts in this repo still default to the old `jalpari` command name — with the current release, set `FORGE` to `qasida`:
 
----
-
-## 🗺️ Project map
-
-Two layers, one repo: JalOS (the teaching OS, written in Jal Pari) and Black Moon OS (the bootable distro it ships inside).
-
-```mermaid
-flowchart TD
-    JP["The Jal Pari Language"] --> JALOS["jalos.fg — JalOS teaching OS"]
-    JALOS --> SCHED["priority scheduler"]
-    JALOS --> VM["virtual memory allocator"]
-    JALOS --> FS["hierarchical filesystem + permissions"]
-    JALOS --> NET["networking + package manager"]
-    JALOS --> SHELL["~30-command shell"]
-    ARCH["Arch Linux (archiso)"] --> DISTRO["Black Moon OS distro"]
-    DISTRO --> XFCE["XFCE + LightDM + picom + plank"]
-    DISTRO --> INST["guided installer"]
-    DISTRO --> APP["JalOS as an app inside the distro"]
+```sh
+FORGE=qasida ./run.sh                       # the built-in demo tour
+FORGE=qasida ./run.sh script.txt            # run a script file (see scripts/)
+FORGE=qasida ./run.sh ps                    # a single command
 ```
 
-## 📊 At a glance (verified Oct 2026)
+`tests/check.sh` runs the demo tour and diffs it against `tests/expected_output.txt` — the tour is offline and deterministic, so it must match exactly.
 
-| Measure | Value |
-|---|---|
-| JalOS | Full teaching OS in a single Jal Pari program, ~30 shell commands |
-| Distro base | Arch Linux (archiso profile), XFCE desktop |
-| Distro extras | Firefox, LibreOffice, GIMP, plank dock, macOS-look pieces, BlackArch Stage-1 tools |
-| ISO | Built 27 Oct 2026 via GitHub Actions, contents checked locally (live boot untested) |
-| Language | [The Jal Pari Language](https://github.com/themythofsisyphusjayant/RED-MOON-) |
-| License | MIT |
+## Black Moon OS — the distro
+
+JalOS also ships inside a real, bootable Arch-based Linux distribution: XFCE desktop, Firefox/Chromium, GNOME Software, a guided installer, and Qasida. See [`distro/README.md`](distro/README.md) — build it with `./distro/build.sh` on Arch Linux, or via the GitHub Actions workflow (`.github/workflows/build-iso.yml`).
+
+The distinction matters and is documented in the distro README: the distro is a real Linux system; JalOS itself runs *on top of* an OS and is not a kernel.
+
+An ISO was built 27 Oct 2026 via GitHub Actions (workflow run succeeded). Live boot is untested.
+
+## Limits
+
+- **Not bootable — yet.** JalOS itself still runs on top of a host OS: it is a simulation, not a kernel. The language underneath it has since gained the pieces a bootable kernel needs — freestanding mode (`--freestanding`: no libc, own `_start`), raw memory (`peek32`/`poke32`), bitwise operators, CSR builtins, an `ecall` builtin, and a `trap_handler` hook. That kernel track now lives in [MOON-OS](https://github.com/themythofsisyphusjayant/MOON-OS) (Phases A–F done, idle task integrated, unified kernel). JalOS's ideas feed that kernel, but JalOS the program does not become it. What Qasida still lacks for kernel work: pointers and inline assembly.
+- **No GUI.** No graphics builtins exist, so the desktop is the text shell.
+- **No passwords worth trusting.** Passwords are compared as plain strings (no hashing builtin exists) — the user model demonstrates permissions, it does not secure anything real.
+- **HTTPS works through proxies.** `pkg install` and `httpget` over HTTPS honour `https_proxy` / `HTTPS_PROXY` (plain HTTP proxy, `CONNECT` handshake before TLS; `no_proxy` bypasses it). Plain HTTP works everywhere regardless.
+- **No persistence.** The VFS lives in memory; shutdown loses it.
+
+## Layout
+
+```text
+jalos.fg            the teaching OS (single Qasida program)
+run.sh              demo tour / script / single-command runner
+scripts/            example script files
+tests/              check.sh + expected_output.txt (exact-output regression check)
+distro/             archiso profile, build.sh, distro README
+INTEGRATION.md      how the two layers fit together
+LICENSE             MIT
+```
+
+## Links
+
+- The language: [RED-MOON- (Qasida source)](https://github.com/themythofsisyphusjayant/RED-MOON-) · [Qasida on PyPI](https://pypi.org/project/qasida/) (`pip install qasida`)
+- The kernel track: [MOON-OS](https://github.com/themythofsisyphusjayant/MOON-OS)
+- Distro details: [distro/README.md](distro/README.md)
